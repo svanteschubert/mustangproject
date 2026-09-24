@@ -78,11 +78,18 @@ snapshot_version="${zugferd_version}-SNAPSHOT"
 mvn_cmd -B clean package
 
 mustang_version=$(mvn_cmd -q -N help:evaluate -Dexpression=project.version -DforceStdout 2>/dev/null | tail -n 1)
-jar="Mustang-CLI/target/Mustang-CLI-${mustang_version}.jar"
-if [ ! -r "$jar" ]; then
-    echo "Expected uber-JAR not found: $jar" >&2
+built_jar="Mustang-CLI/target/Mustang-CLI-${mustang_version}.jar"
+if [ ! -r "$built_jar" ]; then
+    echo "Expected uber-JAR not found: $built_jar" >&2
     exit 1
 fi
+
+# Give the local copy a self-describing name, since the plain artifactId-less
+# filename Maven produces (Mustang-CLI-<mustang_version>.jar) does not show
+# this is the mustang4zugferd fork nor its own version. This is local naming
+# only; it does not change the deployed Maven coordinates or filename.
+jar="Mustang-CLI/target/${artifact_id}-${zugferd_version}_mustang-${mustang_version}.jar"
+cp "$built_jar" "$jar"
 
 # Phase 3: deploy, using the gitlab-maven server credentials from the active
 # Maven settings.xml (see header comment above).
